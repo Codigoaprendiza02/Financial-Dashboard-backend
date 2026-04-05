@@ -40,6 +40,7 @@ function errorHandler(err, req, res, next) {
   }
 
   // Default to 500 Internal Error
+  console.error('Server Error:', err);
   res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',

@@ -14,7 +14,7 @@ describe('Phase 2: Authentication & User Session', () => {
 
     beforeAll(async () => {
         // Use a test DB
-        const url = process.env.MONGODB_URI + '_test';
+        const url = process.env.MONGODB_URI + '_phase2_test';
         if (mongoose.connection.readyState === 1) {
             await mongoose.disconnect();
         }

@@ -10,7 +10,7 @@ describe('Phase 4: Dashboard & Analytics Endpoints', () => {
     let seededRecord1, seededRecord2, seededRecord3, deletedRecord;
 
     beforeAll(async () => {
-        const url = process.env.MONGODB_URI + '_test';
+        const url = process.env.MONGODB_URI + '_phase4_test';
         if (mongoose.connection.readyState === 1) await mongoose.disconnect();
         await mongoose.connect(url);
         await User.deleteMany({});

@@ -12,7 +12,7 @@ describe('Phase 3: User Management & Financial Records CRUD', () => {
     let newUserId;
 
     beforeAll(async () => {
-        const url = process.env.MONGODB_URI + '_test';
+        const url = process.env.MONGODB_URI + '_phase3_test';
         if (mongoose.connection.readyState === 1) await mongoose.disconnect();
         await mongoose.connect(url);
         await User.deleteMany({});

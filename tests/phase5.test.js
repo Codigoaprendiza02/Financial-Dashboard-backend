@@ -11,7 +11,7 @@ describe('Phase 5: Polish & Optional Enhancements', () => {
     let adminUser;
 
     beforeAll(async () => {
-        const url = process.env.MONGODB_URI + '_test';
+        const url = process.env.MONGODB_URI + '_phase5_test';
         if (mongoose.connection.readyState === 1) await mongoose.disconnect();
         await mongoose.connect(url);
         await User.deleteMany({});

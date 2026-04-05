@@ -22,7 +22,7 @@ describe('System End-to-End Inspection', () => {
 
     beforeAll(async () => {
         // Connect to test DB
-        const url = process.env.MONGODB_URI + '_e2e_test';
+        const url = process.env.MONGODB_URI + '_full_system_test';
         if (mongoose.connection.readyState === 1) await mongoose.disconnect();
         await mongoose.connect(url);
         
@@ -140,5 +140,5 @@ describe('System End-to-End Inspection', () => {
         // Unauthenticated access
         const noAuth = await request(app).get('/api/v1/users');
         expect(noAuth.status).toBe(401);
-    });
+    }, 30000); // 30s timeout
 });
