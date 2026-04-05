@@ -1,0 +1,415 @@
+openapi: 3.0.0
+info:
+  title: Finance Dashboard API
+  description: Backend system for a finance dashboard, supporting user management, financial record CRUD operations, aggregated analytics, and strict Role-Based Access Control (RBAC).
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  example: Jane Doe
+                email:
+                  type: string
+                  example: jane@example.com
+                password:
+                  type: string
+                  example: Pass@1234
+                role:
+                  type: string
+                  enum: [VIEWER, ANALYST, ADMIN]
+                  example: VIEWER
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Validation error
+        '409':
+          description: Conflict (Email already in use)
+
+  /auth/login:
+    post:
+      summary: Login and receive a JWT token
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: admin@finance.dev
+                password:
+                  type: string
+                  example: Admin@1234
+      responses:
+        '200':
+          description: Successful login
+        '401':
+          description: Unauthorized (Invalid credentials)
+
+  /auth/me:
+    get:
+      summary: Get the current logged-in user profile
+      tags: [Authentication]
+      responses:
+        '200':
+          description: User profile returned
+        '401':
+          description: Unauthorized
+
+  /auth/logout:
+    post:
+      summary: Logout the current user
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Logged out successfully
+
+  /users:
+    get:
+      summary: List all users (ADMIN only)
+      tags: [Users]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE]
+          description: Filter users by status
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Limit number of items per page
+      responses:
+        '200':
+          description: A list of users
+        '403':
+          description: Forbidden (Requires ADMIN role)
+    post:
+      summary: Create a new user (ADMIN only)
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, role]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [VIEWER, ANALYST, ADMIN]
+      responses:
+        '201':
+          description: User created
+        '403':
+          description: Forbidden (Requires ADMIN role)
+
+  '/users/{id}':
+    get:
+      summary: Get user details by ID (ADMIN only)
+      tags: [Users]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+        '404':
+          description: User not found
+    patch:
+      summary: Update a user's details (ADMIN only)
+      tags: [Users]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                role:
+                  type: string
+                  enum: [VIEWER, ANALYST, ADMIN]
+                status:
+                  type: string
+                  enum: [ACTIVE, INACTIVE]
+      responses:
+        '200':
+          description: User updated successfully
+    delete:
+      summary: Delete a user (ADMIN only)
+      tags: [Users]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User soft-deleted/deactivated
+
+  /records:
+    get:
+      summary: List financial records
+      tags: [Financial Records]
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [INCOME, EXPENSE]
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [date, amount]
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: List of financial records
+    post:
+      summary: Create a financial record (ADMIN only)
+      tags: [Financial Records]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount, type, category, date]
+              properties:
+                amount:
+                  type: number
+                type:
+                  type: string
+                  enum: [INCOME, EXPENSE]
+                category:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Record created successfully
+        '403':
+          description: Forbidden (Requires ADMIN role)
+
+  '/records/{id}':
+    get:
+      summary: Get record details by ID
+      tags: [Financial Records]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record details
+        '404':
+          description: Record not found
+    patch:
+      summary: Update a financial record (ADMIN only)
+      tags: [Financial Records]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                type:
+                  type: string
+                  enum: [INCOME, EXPENSE]
+                category:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Record updated successfully
+    delete:
+      summary: Soft-delete a financial record (ADMIN only)
+      tags: [Financial Records]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Record soft-deleted
+
+  /dashboard/summary:
+    get:
+      summary: Get dashboard summary totals (Income, Expenses, Net Balance)
+      tags: [Dashboard]
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Dashboard summary
+
+  /dashboard/recent:
+    get:
+      summary: Get recent transactions
+      tags: [Dashboard]
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Recent transactions
+
+  /dashboard/categories:
+    get:
+      summary: Get category-wise breakdown (ANALYST, ADMIN)
+      tags: [Dashboard]
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Grouped financial records by category
+        '403':
+          description: Forbidden
+
+  /dashboard/trends:
+    get:
+      summary: Get time-series trends (MONTHLY/WEEKLY) (ANALYST, ADMIN)
+      tags: [Dashboard]
+      parameters:
+        - in: query
+          name: granularity
+          schema:
+            type: string
+            enum: [monthly, weekly]
+            default: monthly
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Aggregated trend data
+        '403':
+          description: Forbidden
